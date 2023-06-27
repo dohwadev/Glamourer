@@ -350,8 +350,8 @@ public class CharacterSave
             case 1:
                 CheckSize(bytes.Length, TotalSizeVersion1);
                 CheckRange(2, bytes[1], 0, 1);
-                Alpha    = 1.0f;
-                bytes[0] = CurrentVersion;
+                Alpha      = 1.0f;
+                bytes[0]   = CurrentVersion;
                 oldVersion = true;
                 break;
             case 2:

@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Dalamud.Interface;
 using ImGuiNET;
 using Lumina.Text;
 using Penumbra.GameData.Enums;
@@ -40,6 +39,46 @@ namespace Glamourer.Gui
             newStain.Write(_player.Address, slot);
             return true;
 
+        }
+
+        private bool DrawGlobalStainSelector(ComboWithFilter<Stain> stainCombo)
+        {
+            stainCombo.PostPreview = null;
+
+            var change = stainCombo.Draw(string.Empty, out var newStain);
+            ImGui.SameLine();
+            ImGui.TextUnformatted("Dye All Slots");
+            if (!change)
+            {
+                ImGuiCustom.HoverTooltip("Right-click to clear.");
+                if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+                {
+                    change = true;
+                    newStain = Stain.None;
+                }
+            }
+
+            if (!change)
+                return false;
+
+            if (_player == null)
+            {
+                foreach (var key in GetEquipSlotNames().Keys)
+                {
+                    if (key is EquipSlot.OffHand && _selection?.Data.Equipment.OffHand.Set.Value == 0)
+                        continue;
+                    _selection?.Data.WriteStain(key, newStain.RowIndex);
+                }
+                return _inDesignMode;
+            }
+
+            Glamourer.RevertableDesigns.Add(_player);
+            foreach (var key in GetEquipSlotNames().Keys)
+            {
+                newStain.Write(_player.Address, key);
+            }
+            
+            return true;
         }
 
         private bool DrawItemSelector(ComboWithFilter<Item> equipCombo, Lumina.Excel.GeneratedSheets.Item item, EquipSlot slot = EquipSlot.Unknown)
@@ -94,7 +133,7 @@ namespace Glamourer.Gui
             {
                 0    => SmallClothes,
                 9903 => SmallClothesNpc,
-                _    => _identifier.Identify(set, weapon, variant, slot).FirstOrDefault() ?? Unknown,
+                _    => _identifier.Identify(set, weapon, variant, slot.ToSlot()).FirstOrDefault() ?? Unknown,
             };
         }
 
@@ -143,6 +182,7 @@ namespace Glamourer.Gui
             var ret = false;
             if (ImGui.CollapsingHeader("Character Equipment"))
             {
+                ret |= DrawGlobalStainSelector(_globalStainCombo);
                 ret |= DrawWeapon(EquipSlot.MainHand, equip.MainHand);
                 ret |= DrawWeapon(EquipSlot.OffHand,  equip.OffHand);
                 ret |= DrawEquipSlot(EquipSlot.Head,    equip.Head);
@@ -165,6 +205,7 @@ namespace Glamourer.Gui
             var ret = false;
             if (ImGui.CollapsingHeader("Character Equipment"))
             {
+                ret |= DrawGlobalStainSelector(_globalStainCombo);
                 ret |= DrawWeaponWithCheck(EquipSlot.MainHand, equip.MainHand, CharacterEquipMask.MainHand, ref mask);
                 ret |= DrawWeaponWithCheck(EquipSlot.OffHand,  equip.OffHand,  CharacterEquipMask.OffHand,  ref mask);
                 ret |= DrawEquipSlotWithCheck(EquipSlot.Head,    equip.Head,    CharacterEquipMask.Head,    ref mask);

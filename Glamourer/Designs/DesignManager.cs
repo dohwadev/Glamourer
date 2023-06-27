@@ -11,11 +11,11 @@ namespace Glamourer.Designs;
 
 public class DesignManager
 {
-    public const string FileName = "Designs.json";
+    public const     string   FileName = "Designs.json";
     private readonly FileInfo _saveFile;
 
     public SortedList<string, CharacterSave> Designs = null!;
-    public FileSystem.FileSystem FileSystem { get; } = new();
+    public FileSystem.FileSystem             FileSystem { get; } = new();
 
     public DesignManager()
     {
@@ -45,7 +45,7 @@ public class DesignManager
 
                 Designs.Remove(path);
                 Designs[fixedPath] = save;
-                anyChanges = true;
+                anyChanges         = true;
                 PluginLog.Debug($"Problem loading saved designs, {path} was renamed to {fixedPath}.");
             }
             catch (Exception e)
@@ -99,17 +99,17 @@ public class DesignManager
                 changes |= UpdateRoot(oldPath, d);
                 break;
             case Folder f:
+            {
+                var newRootPath = root.FullName();
+                if (!string.Equals(oldPath, newRootPath, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var newRootPath = root.FullName();
-                    if (!string.Equals(oldPath, newRootPath, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        changes = true;
-                        foreach (var descendant in f.AllLeaves(SortMode.Lexicographical).Where(l => l is Design).Cast<Design>())
-                            UpdateChild(oldPath, newRootPath, descendant);
-                    }
-
-                    break;
+                    changes = true;
+                    foreach (var descendant in f.AllLeaves(SortMode.Lexicographical).Where(l => l is Design).Cast<Design>())
+                        UpdateChild(oldPath, newRootPath, descendant);
                 }
+
+                break;
+            }
         }
 
         if (changes)

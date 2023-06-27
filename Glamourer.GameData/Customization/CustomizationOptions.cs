@@ -63,9 +63,14 @@ namespace Glamourer.Customization
                     continue;
 
                 var hairRow = _customizeSheet.GetRow(customizeIdx);
-                hairList.Add(hairRow != null
-                    ? new Customization(CustomizationId.Hairstyle, hairRow.FeatureID, hairRow.Icon, (ushort) hairRow.RowId)
-                    : new Customization(CustomizationId.Hairstyle, (byte) i,          customizeIdx, 0));
+                if (hairRow == null)
+                {
+                    hairList.Add(new Customization(CustomizationId.Hairstyle, (byte)i, customizeIdx));
+                }
+                else if (_icons.IconExists(hairRow.Icon))
+                {
+                    hairList.Add(new Customization(CustomizationId.Hairstyle, hairRow.FeatureID, hairRow.Icon, (ushort)hairRow.RowId));
+                }
             }
 
             return hairList.ToArray();
@@ -269,15 +274,7 @@ namespace Glamourer.Customization
             => _names[(int) name];
 
         private static Language FromClientLanguage(ClientLanguage language)
-            => language switch
-            {
-                ClientLanguage.English  => Language.English,
-                ClientLanguage.French   => Language.French,
-                ClientLanguage.German   => Language.German,
-                ClientLanguage.Japanese => Language.Japanese,
-                ClientLanguage.Korean   => Language.Korean,
-                _                       => Language.English,
-            };
+            => language.ToLumina();
 
         internal CustomizationOptions(DalamudPluginInterface pi, DataManager gameData, ClientLanguage language)
         {
